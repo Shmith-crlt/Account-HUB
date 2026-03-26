@@ -1,0 +1,27 @@
+## Interface: 120000
+## Title: Account-HUB
+## Notes: Mythic+, Raid and Guild toolkit with professional UI panels
+## Notes-deDE: Mythic+, Raid- und Gilden-Toolkit mit modernen Uebersichtspanels
+## Author: Stephan
+## Version: 8.0.0
+## SavedVariables: MRTE_GlobalDB
+## SavedVariablesPerCharacter: MRTE_CharDB
+## OptionalDeps: MythicDungeonTools, HandyNotes, TomTom
+
+Localization.lua
+Core.lua
+UI.lua
+Characters.lua
+KeystoneLootImportData.lua
+BiSTargets.lua
+Panels.lua
+MythicLogger.lua
+Vault.lua
+Currencies.lua
+Portals.lua
+DungeonInfo.lua
+Guild.lua
+Routes.lua
+Sync.lua
+Minimap.lua
+Style.lua

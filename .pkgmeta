@@ -1,0 +1,11 @@
+ignore:
+  - .vs
+  - dist
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+license-output: LICENSE.txt
+
+enable-nolib-creation: no
