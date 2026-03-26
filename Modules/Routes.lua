@@ -296,17 +296,40 @@ local function BuildPullEntries(context, signatureParts)
  return entries
 end
 
+local function GetScenarioCriteriaInfo(index, getCriteriaInfo)
+ local info = getCriteriaInfo(index)
+ if type(info) == "table" then
+  return info
+ end
+
+ local description, criteriaType, completed, quantityString, _, _, _, _, criteriaID, assetID, quantity, totalQuantity, flags = getCriteriaInfo(index)
+ return {
+  description = description,
+  criteriaType = criteriaType,
+  completed = completed,
+  quantityString = quantityString,
+  criteriaID = criteriaID,
+  assetID = assetID,
+  quantity = quantity,
+  totalQuantity = totalQuantity,
+  flags = flags,
+ }
+end
+
 local function GetLiveProgressCount(context)
  if not (C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive()) then
   return nil, nil
  end
 
- local activeDungeonIdx = C_ChallengeMode.GetActiveChallengeMapID and C_ChallengeMode.GetActiveChallengeMapID()
- if not activeDungeonIdx or activeDungeonIdx ~= context.dungeonIdx then
+ -- MDT uses its own dungeon indices, which do not match Blizzard's challenge map IDs.
+ -- If a challenge mode is active, trust the current scenario progress and the route context we already resolved from MDT/player zone.
+
+ if not (C_Scenario and C_Scenario.GetStepInfo) then
   return nil, nil
  end
 
- if not (C_Scenario and C_Scenario.GetStepInfo and C_ScenarioInfo and C_ScenarioInfo.GetCriteriaInfo) then
+ local getCriteriaInfo = (C_ScenarioInfo and C_ScenarioInfo.GetCriteriaInfo) or (C_Scenario and C_Scenario.GetCriteriaInfo)
+ if type(getCriteriaInfo) ~= "function" then
   return nil, nil
  end
 
@@ -315,24 +338,39 @@ local function GetLiveProgressCount(context)
   return nil, nil
  end
 
- local criteriaInfo = C_ScenarioInfo.GetCriteriaInfo(numCriteria)
- if not criteriaInfo then
+ local fallbackInfo
+ local progressInfo
+
+ for index = 1, numCriteria do
+  local criteriaInfo = GetScenarioCriteriaInfo(index, getCriteriaInfo)
+  if criteriaInfo then
+   if index == numCriteria then
+    fallbackInfo = criteriaInfo
+   end
+
+   if criteriaInfo.isWeightedProgress and tonumber(criteriaInfo.totalQuantity) and tonumber(criteriaInfo.totalQuantity) > 0 then
+    progressInfo = criteriaInfo
+    break
+   end
+  end
+ end
+
+ progressInfo = progressInfo or fallbackInfo
+ if not progressInfo then
   return nil, nil
  end
 
- local totalQuantity = tonumber(criteriaInfo.totalQuantity) or tonumber(context.totalCount)
- local quantity = tonumber(criteriaInfo.quantity)
+ local totalQuantity = tonumber(progressInfo.totalQuantity) or tonumber(context.totalCount)
+ local quantityString = type(progressInfo.quantityString) == "string" and progressInfo.quantityString or nil
+ local stringQuantity = quantityString and tonumber(quantityString:match("(%d+)") ) or nil
 
- if quantity and totalQuantity and totalQuantity > 0 then
-  return (quantity * totalQuantity) / 100, totalQuantity
+ if stringQuantity and totalQuantity and totalQuantity > 0 then
+  return math.min(stringQuantity, totalQuantity), totalQuantity
  end
 
- local quantityString = criteriaInfo.quantityString
- if type(quantityString) == "string" and totalQuantity and totalQuantity > 0 then
-  local percent = tonumber((quantityString:gsub("%%", "")))
-  if percent then
-   return (percent * totalQuantity) / 100, totalQuantity
-  end
+ local quantity = tonumber(progressInfo.quantity)
+ if quantity and totalQuantity and totalQuantity > 0 then
+  return math.min((quantity * totalQuantity) / 100, totalQuantity), totalQuantity
  end
 
  return nil, totalQuantity
@@ -699,9 +737,16 @@ function MRTE_RefreshNextPullPanel(force, verbose)
  local autoIndex, sourceLabel, progressCount = SelectVisiblePulls(context, entries)
  local entryCount = #entries
  local maxIndex = entryCount + 1
- local manualIndex = ClampIndex(GetNextPullManualIndex(contextKey) or autoIndex, 1, maxIndex)
+ local storedManualIndex = GetNextPullManualIndex(contextKey)
+
+ if storedManualIndex and progressCount and storedManualIndex < autoIndex then
+  SetNextPullManualIndex(contextKey, nil)
+  storedManualIndex = nil
+ end
+
+ local manualIndex = ClampIndex(storedManualIndex or autoIndex, 1, maxIndex)
  local currentIndex = manualIndex
- local usingManual = GetNextPullManualIndex(contextKey) ~= nil
+ local usingManual = storedManualIndex ~= nil
  local primaryPull = entries[currentIndex]
  local nextPull = entries[currentIndex + 1]
 
@@ -777,6 +822,7 @@ nextPullDriver:RegisterEvent("CHALLENGE_MODE_START")
 nextPullDriver:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 nextPullDriver:RegisterEvent("CHALLENGE_MODE_RESET")
 nextPullDriver:RegisterEvent("SCENARIO_UPDATE")
+nextPullDriver:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
 
 nextPullDriver:SetScript("OnEvent", function()
  nextPullElapsed = UPDATE_INTERVAL
@@ -796,3 +842,4 @@ nextPullDriver:SetScript("OnUpdate", function(_, elapsed)
  nextPullElapsed = 0
  MRTE_RefreshNextPullPanel(false, false)
 end)
+
