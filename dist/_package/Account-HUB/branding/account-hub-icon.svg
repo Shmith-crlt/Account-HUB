@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="icon_gold" x1="120" y1="82" x2="384" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE27A"/>
+      <stop offset="0.52" stop-color="#E0B53E"/>
+      <stop offset="1" stop-color="#8E6718"/>
+    </linearGradient>
+    <linearGradient id="icon_steel" x1="116" y1="92" x2="392" y2="418" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1A1D23"/>
+      <stop offset="1" stop-color="#08090C"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="22" y="22" width="468" height="468" rx="96" fill="#050608"/>
+  <rect x="24" y="24" width="464" height="464" rx="94" stroke="#6C5317" stroke-width="4"/>
+
+  <path d="M256 74L370 140V272L256 338L142 272V140L256 74Z" fill="url(#icon_steel)"/>
+  <path d="M256 90L356 148V264L256 322L156 264V148L256 90Z" stroke="url(#icon_gold)" stroke-width="10"/>
+  <path d="M256 126L324 165V244L256 283L188 244V165L256 126Z" fill="#0B0C10" stroke="#C79B31" stroke-width="6"/>
+
+  <circle cx="256" cy="205" r="21" fill="url(#icon_gold)"/>
+  <circle cx="256" cy="205" r="9" fill="#090A0D"/>
+
+  <path d="M256 84V116" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M256 294V326" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M152 205H184" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M328 205H360" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M185 131L206 153" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M307 258L328 279" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M185 279L206 258" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M307 153L328 131" stroke="#DDB24A" stroke-width="10" stroke-linecap="round"/>
+
+  <path d="M210 263L241 165H267L298 263H273L265.5 240H243.5L236 263H210ZM250 219H259L254.5 203L250 219Z" fill="#FFDB69"/>
+  <path d="M207 165H232V204H280V165H305V263H280V224H232V263H207V165Z" fill="#0A0B0E"/>
+</svg>

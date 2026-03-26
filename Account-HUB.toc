@@ -3,7 +3,8 @@
 ## Notes: Mythic+, Raid and Guild toolkit with professional UI panels
 ## Notes-deDE: Mythic+, Raid- und Gilden-Toolkit mit modernen Uebersichtspanels
 ## Author: Stephan
-## Version: 8.0.0
+## Version: 1.0
+## IconTexture: Interface/AddOns/Account-HUB/branding/account-hub-icon.tga
 ## SavedVariables: MRTE_GlobalDB
 ## SavedVariablesPerCharacter: MRTE_CharDB
 ## OptionalDeps: MythicDungeonTools, HandyNotes, TomTom
