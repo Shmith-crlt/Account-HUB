@@ -5,7 +5,7 @@ function MRTE_CreateMinimapButton()
   return _G.MRTE_MinimapButton
  end
 
- local texturePath = string.format("Interface\\AddOns\\%s\\branding\\account-hub-icon", addonName or "Account-HUB")
+ local texturePath = string.format("Interface\\AddOns\\%s\\Assets\\Branding\\account-hub-icon", addonName or "Account-HUB")
  local btn = CreateFrame("Button", "MRTE_MinimapButton", Minimap)
  btn:SetSize(34, 34)
  btn:SetFrameStrata("MEDIUM")
@@ -40,3 +40,4 @@ function MRTE_CreateMinimapButton()
 
  return btn
 end
+

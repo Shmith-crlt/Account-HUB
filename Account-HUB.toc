@@ -4,25 +4,25 @@
 ## Notes-deDE: Mythic+, Raid- und Gilden-Toolkit mit modernen Uebersichtspanels
 ## Author: Stephan
 ## Version: 1.0
-## IconTexture: Interface/AddOns/Account-HUB/branding/account-hub-icon.tga
+## IconTexture: Interface/AddOns/Account-HUB/Assets/Branding/account-hub-icon.tga
 ## SavedVariables: MRTE_GlobalDB
 ## SavedVariablesPerCharacter: MRTE_CharDB
 ## OptionalDeps: MythicDungeonTools, HandyNotes, TomTom
 
-Localization.lua
-Core.lua
-UI.lua
-Characters.lua
-KeystoneLootImportData.lua
-BiSTargets.lua
-Panels.lua
-MythicLogger.lua
-Vault.lua
-Currencies.lua
-Portals.lua
-DungeonInfo.lua
-Guild.lua
-Routes.lua
-Sync.lua
-Minimap.lua
-Style.lua
+Core\Localization.lua
+Core\Core.lua
+UI\UI.lua
+Modules\Characters.lua
+Data\KeystoneLootImportData.lua
+Modules\BiSTargets.lua
+UI\Panels.lua
+Modules\MythicLogger.lua
+Modules\Vault.lua
+Modules\Currencies.lua
+Modules\Portals.lua
+Modules\DungeonInfo.lua
+Modules\Guild.lua
+Modules\Routes.lua
+Modules\Sync.lua
+UI\Minimap.lua
+UI\Style.lua

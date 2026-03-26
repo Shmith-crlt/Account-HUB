@@ -1,6 +1,7 @@
 package-as: Account-HUB
 
 ignore:
+  - .git
   - .vs
   - dist
 

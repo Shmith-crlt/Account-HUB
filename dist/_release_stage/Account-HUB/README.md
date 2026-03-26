@@ -12,6 +12,15 @@ Account-HUB is a World of Warcraft Retail addon focused on account-wide Mythic+,
 - KeystoneLoot import panel for loot targets
 - MDT-based Next Pull panel with manual advance, back, reset, and popout support
 
+## Repository Layout
+
+- `Core/` bootstrap and localization
+- `UI/` frames, styling, minimap button, and panel layout
+- `Modules/` gameplay features and feature-specific logic
+- `Data/` static import and lookup data
+- `Assets/Branding/` logo and addon artwork
+- `dist/` built release archives
+
 ## Optional Addons
 
 The addon works best with these optional addons installed:

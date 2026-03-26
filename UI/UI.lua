@@ -19,7 +19,7 @@ end
 
 function MRTE_CreateMainUI()
  local frame = CreateFrame("Frame", "MRTE_MainFrame", UIParent, "BackdropTemplate")
- local logoIconPath = string.format("Interface\\AddOns\\%s\\branding\\account-hub-icon", addonName or "Account-HUB")
+ local logoIconPath = string.format("Interface\\AddOns\\%s\\Assets\\Branding\\account-hub-icon", addonName or "Account-HUB")
  frame:SetSize(1020, 780)
  frame:SetPoint("CENTER")
  frame:SetFrameStrata("DIALOG")
@@ -326,3 +326,4 @@ SlashCmdList["ACCOUNTHUB"] = function(msg)
  print(L.SLASH_HELP)
  MRTE_SetStatus(L.UNKNOWN_COMMAND)
 end
+
