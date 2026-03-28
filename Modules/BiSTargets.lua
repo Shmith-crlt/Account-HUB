@@ -1,4 +1,4 @@
-local L = MRTE_L
+﻿local L = MRTE_L
 
 local KNOWN_CHALLENGE_MAP_SOURCES = {
  [378] = "Halls of Atonement",
@@ -1568,20 +1568,20 @@ function MRTE_CreateBiSTargetsPanel()
   row.name:SetPoint("TOPLEFT", row.iconFrame, "TOPRIGHT", 8, -3)
   row.name:SetPoint("RIGHT", -42, 0)
   row.name:SetJustifyH("LEFT")
-  row.name:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
+  MRTE_SetFont(row.name, 11, "OUTLINE")
   DisableTextWrap(row.name)
 
   row.source = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   row.source:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
   row.source:SetPoint("RIGHT", -42, 0)
   row.source:SetJustifyH("LEFT")
-  row.source:SetFont(STANDARD_TEXT_FONT, 10, "")
+  MRTE_SetFont(row.source, 10, "")
   DisableTextWrap(row.source)
 
   row.rank = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   row.rank:SetPoint("TOPRIGHT", -8, -4)
   row.rank:SetJustifyH("RIGHT")
-  row.rank:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+  MRTE_SetFont(row.rank, 12, "OUTLINE")
   row.rank:SetTextColor(1.00, 0.86, 0.10)
 
   row:SetScript("OnEnter", function(self)
@@ -1651,14 +1651,14 @@ function MRTE_CreateBiSTargetsPanel()
   row.name:SetPoint("TOPLEFT", row.iconFrame, "TOPRIGHT", 8, -3)
   row.name:SetPoint("RIGHT", row.badgeFrame, "LEFT", -8, 0)
   row.name:SetJustifyH("LEFT")
-  row.name:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
+  MRTE_SetFont(row.name, 11, "OUTLINE")
   DisableTextWrap(row.name)
 
   row.meta = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   row.meta:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
   row.meta:SetPoint("RIGHT", row.badgeFrame, "LEFT", -8, 0)
   row.meta:SetJustifyH("LEFT")
-  row.meta:SetFont(STANDARD_TEXT_FONT, 10, "")
+  MRTE_SetFont(row.meta, 10, "")
   DisableTextWrap(row.meta)
 
   row:SetScript("OnEnter", function(self)
@@ -1706,14 +1706,14 @@ function MRTE_CreateBiSTargetsPanel()
   row.name:SetPoint("TOPLEFT", row.iconFrame, "TOPRIGHT", 8, -3)
   row.name:SetPoint("RIGHT", row.badgeFrame, "LEFT", -8, 0)
   row.name:SetJustifyH("LEFT")
-  row.name:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
+  MRTE_SetFont(row.name, 11, "OUTLINE")
   DisableTextWrap(row.name)
 
   row.meta = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   row.meta:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
   row.meta:SetPoint("RIGHT", row.badgeFrame, "LEFT", -8, 0)
   row.meta:SetJustifyH("LEFT")
-  row.meta:SetFont(STANDARD_TEXT_FONT, 10, "")
+  MRTE_SetFont(row.meta, 10, "")
   DisableTextWrap(row.meta)
 
   row:SetScript("OnEnter", function(self)
@@ -1883,3 +1883,5 @@ bisEvents:SetScript("OnEvent", function()
   MRTE_UpdateBiSTargetsPanel()
  end
 end)
+
+

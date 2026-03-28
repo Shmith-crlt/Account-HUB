@@ -1,4 +1,4 @@
-MRTE_GlobalDB = MRTE_GlobalDB or {}
+﻿MRTE_GlobalDB = MRTE_GlobalDB or {}
 MRTE_CharDB = MRTE_CharDB or {}
 
 MidnightRaidToolsElite = {}
@@ -12,6 +12,10 @@ function MRTE:InitDB()
  MRTE_GlobalDB.mdtOverlay = MRTE_GlobalDB.mdtOverlay or {}
  if MRTE_GlobalDB.mdtOverlay.detached == nil then
   MRTE_GlobalDB.mdtOverlay.detached = false
+ end
+
+ if MRTE_GetUISettings then
+  MRTE_GetUISettings()
  end
 end
 
@@ -32,9 +36,19 @@ f:SetScript("OnEvent", function()
  if MRTE_CreateCharacterTabs then
   MRTE_CreateCharacterTabs()
  end
+ if MRTE_CreateOptionsUI then
+  MRTE_CreateOptionsUI()
+ end
+ if MRTE_CreateAdvisorUI then
+  MRTE_CreateAdvisorUI()
+ end
 
  if MRTE_SelectCurrentCharacter then
   MRTE_SelectCurrentCharacter(true)
+ end
+
+ if MRTE_ApplyUISettings then
+  MRTE_ApplyUISettings()
  end
 
  MRTE_CreateMinimapButton()
@@ -67,6 +81,10 @@ f:SetScript("OnEvent", function()
   MRTE_UpdateGuildPanel()
  end
 
+ if MRTE_UpdateAdvisorPanel then
+  MRTE_UpdateAdvisorPanel()
+ end
+
  if MRTE_RefreshMDTOverlay then
   MRTE_RefreshMDTOverlay(true, false)
  end
@@ -80,3 +98,5 @@ dungeonFrame:SetScript("OnEvent", function()
   MRTE_RefreshMDTOverlay(true, false)
  end
 end)
+
+

@@ -4,6 +4,7 @@ local UPDATE_INTERVAL = 1.5
 local NEUTRAL_BORDER = { 0.24, 0.19, 0.11, 1 }
 local DOCKED_POINT = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -20, y = 64 }
 local DETACHED_DEFAULT_POINT = { point = "CENTER", relativePoint = "CENTER", x = 420, y = -30 }
+local DETACHED_OFFSET = { x = 28, y = -22 }
 
 local nextPullDriver = CreateFrame("Frame")
 local nextPullElapsed = 0
@@ -95,6 +96,16 @@ local function UpdateStatusText(text)
  end
 end
 
+local function UpdateRouteInfoText(text)
+ if not MRTE_NextPullPanelRouteInfoText then
+  return
+ end
+
+ local show = MRTE_IsNextPullDetached() and type(text) == "string" and text ~= ""
+ MRTE_NextPullPanelRouteInfoText:SetText(show and text or "")
+ MRTE_NextPullPanelRouteInfoText:SetShown(show)
+end
+
 local function ResetCardBorder(card)
  if card and card.SetBackdropBorderColor then
   card:SetBackdropBorderColor(NEUTRAL_BORDER[1], NEUTRAL_BORDER[2], NEUTRAL_BORDER[3], NEUTRAL_BORDER[4])
@@ -114,6 +125,40 @@ local function ClearCard(card, titleText, detailText)
  card.pullData = nil
  card.totalPulls = nil
  card.totalCount = nil
+end
+
+local function BuildRouteAssistText(primaryPull, nextPull, context)
+ if not primaryPull or type(context) ~= "table" then
+  return nil
+ end
+
+ local totalCount = tonumber(context.totalCount) or 0
+ if totalCount <= 0 then
+  return nil
+ end
+
+ local afterCount = tonumber(primaryPull.cumulativeCount) or 0
+ local remaining = math.max(totalCount - afterCount, 0)
+ local overcap = math.max(afterCount - totalCount, 0)
+ local lines = {
+  MRTE_T("ADVISOR_ROUTE_AFTER_PULL", FormatCount(afterCount), FormatPercent(afterCount, totalCount)),
+ }
+
+ if overcap > 0.05 then
+  lines[#lines + 1] = MRTE_T("ADVISOR_ROUTE_OVERCAP", FormatCount(overcap), FormatPercent(overcap, totalCount))
+ else
+  lines[#lines + 1] = MRTE_T("ADVISOR_ROUTE_REMAINING", FormatCount(remaining), FormatPercent(remaining, totalCount))
+ end
+
+ if nextPull then
+  lines[#lines + 1] = MRTE_T(
+   "ADVISOR_ROUTE_THEN",
+   MRTE_T("NEXT_PULL_PULL_NUMBER", nextPull.sourceIndex, context.totalPulls or nextPull.sourceIndex),
+   nextPull.enemySummary or L.NEXT_PULL_NO_ENEMIES
+  )
+ end
+
+ return table.concat(lines, "\n")
 end
 
 local function GetRouteContext()
@@ -316,8 +361,101 @@ local function GetScenarioCriteriaInfo(index, getCriteriaInfo)
  }
 end
 
+local function IsChallengeScenarioActive()
+ if C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive() then
+  return true
+ end
+
+ if C_ChallengeMode and C_ChallengeMode.GetActiveChallengeMapID then
+  local mapID = C_ChallengeMode.GetActiveChallengeMapID()
+  if mapID and mapID ~= 0 then
+   return true
+  end
+ end
+
+ if C_Scenario and C_Scenario.GetInfo then
+  local scenarioType = C_Scenario.GetInfo()
+  if type(scenarioType) == "string" and scenarioType:lower():find("challenge", 1, true) then
+   return true
+  end
+ end
+
+ return false
+end
+
+local function ExtractCriteriaProgress(criteriaInfo, fallbackTotal)
+ if type(criteriaInfo) ~= "table" then
+  return nil, nil
+ end
+
+ local totalQuantity = tonumber(criteriaInfo.totalQuantity) or tonumber(fallbackTotal)
+ local quantityString = type(criteriaInfo.quantityString) == "string" and criteriaInfo.quantityString or nil
+
+ if quantityString and quantityString ~= "" then
+  local currentFromPair, totalFromPair = quantityString:match("(%d+)%s*/%s*(%d+)")
+  if currentFromPair then
+   local currentValue = tonumber(currentFromPair)
+   totalQuantity = tonumber(totalFromPair) or totalQuantity
+   if currentValue and totalQuantity and totalQuantity > 0 then
+    return math.min(currentValue, totalQuantity), totalQuantity
+   end
+  end
+
+  local currentValue = tonumber(quantityString:match("(%d+)"))
+  if currentValue and totalQuantity and totalQuantity > 0 then
+   return math.min(currentValue, totalQuantity), totalQuantity
+  end
+ end
+
+ local quantity = tonumber(criteriaInfo.quantity)
+ if quantity and totalQuantity and totalQuantity > 0 then
+  if quantity > totalQuantity then
+   return math.min(quantity, totalQuantity), totalQuantity
+  end
+
+  if quantity <= 100 then
+   return math.min((quantity * totalQuantity) / 100, totalQuantity), totalQuantity
+  end
+
+  return math.min(quantity, totalQuantity), totalQuantity
+ end
+
+ if totalQuantity and totalQuantity > 0 then
+  return 0, totalQuantity
+ end
+
+ return nil, nil
+end
+
+local function ScoreScenarioCriteria(index, numCriteria, criteriaInfo, count, totalQuantity)
+ local score = 0
+ local description = type(criteriaInfo.description) == "string" and criteriaInfo.description:lower() or ""
+
+ if criteriaInfo.isWeightedProgress then
+  score = score + 100
+ end
+
+ if index == numCriteria then
+  score = score + 60
+ end
+
+ if totalQuantity and totalQuantity > 0 then
+  score = score + 25
+ end
+
+ if count ~= nil then
+  score = score + 25
+ end
+
+ if description:find("enemy forces", 1, true) or description:find("forces", 1, true) or description:find("feind", 1, true) then
+  score = score + 40
+ end
+
+ return score
+end
+
 local function GetLiveProgressCount(context)
- if not (C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive()) then
+ if not IsChallengeScenarioActive() then
   return nil, nil
  end
 
@@ -338,42 +476,25 @@ local function GetLiveProgressCount(context)
   return nil, nil
  end
 
- local fallbackInfo
- local progressInfo
+ local bestCount
+ local bestTotal
+ local bestScore
 
  for index = 1, numCriteria do
   local criteriaInfo = GetScenarioCriteriaInfo(index, getCriteriaInfo)
   if criteriaInfo then
-   if index == numCriteria then
-    fallbackInfo = criteriaInfo
-   end
+   local count, totalQuantity = ExtractCriteriaProgress(criteriaInfo, context.totalCount)
+   local score = ScoreScenarioCriteria(index, numCriteria, criteriaInfo, count, totalQuantity)
 
-   if criteriaInfo.isWeightedProgress and tonumber(criteriaInfo.totalQuantity) and tonumber(criteriaInfo.totalQuantity) > 0 then
-    progressInfo = criteriaInfo
-    break
+   if not bestScore or score > bestScore then
+    bestScore = score
+    bestCount = count
+    bestTotal = totalQuantity
    end
   end
  end
 
- progressInfo = progressInfo or fallbackInfo
- if not progressInfo then
-  return nil, nil
- end
-
- local totalQuantity = tonumber(progressInfo.totalQuantity) or tonumber(context.totalCount)
- local quantityString = type(progressInfo.quantityString) == "string" and progressInfo.quantityString or nil
- local stringQuantity = quantityString and tonumber(quantityString:match("(%d+)") ) or nil
-
- if stringQuantity and totalQuantity and totalQuantity > 0 then
-  return math.min(stringQuantity, totalQuantity), totalQuantity
- end
-
- local quantity = tonumber(progressInfo.quantity)
- if quantity and totalQuantity and totalQuantity > 0 then
-  return math.min((quantity * totalQuantity) / 100, totalQuantity), totalQuantity
- end
-
- return nil, totalQuantity
+ return bestCount, bestTotal
 end
 
 local function SelectVisiblePulls(context, entries)
@@ -526,6 +647,18 @@ function MRTE_IsNextPullDetached()
  return not not GetNextPullSettings().detached
 end
 
+local function ClearNextPullManualForCurrentContext()
+ local state = MRTE_NextPullPanelState
+ if state and state.contextKey then
+  SetNextPullManualIndex(state.contextKey, nil)
+  return
+ end
+
+ local context = GetRouteContext()
+ if context then
+  SetNextPullManualIndex(GetNextPullContextKey(context), nil)
+ end
+end
 local function SaveNextPullPanelPosition()
  local panel = MRTE_NextPullPanel
  if not panel or not MRTE_IsNextPullDetached() then
@@ -553,7 +686,7 @@ local function ApplyDetachedPoint(panel, keepCurrentPosition)
   local centerX, centerY = panel:GetCenter()
   if centerX and centerY then
    panel:ClearAllPoints()
-   panel:SetPoint("CENTER", UIParent, "BOTTOMLEFT", centerX, centerY)
+   panel:SetPoint("CENTER", UIParent, "BOTTOMLEFT", centerX + (DETACHED_OFFSET.x or 0), centerY + (DETACHED_OFFSET.y or 0))
    return
   end
  end
@@ -575,6 +708,19 @@ function MRTE_UpdateNextPullToggleButton()
  if MRTE_NextPullPanel and MRTE_NextPullPanel.toggleButton then
   MRTE_NextPullPanel.toggleButton:SetText(MRTE_IsNextPullDetached() and L.NEXT_PULL_DOCK or L.NEXT_PULL_DETACH)
  end
+end
+
+function MRTE_BringNextPullPopoutToFront()
+ local panel = MRTE_NextPullPanel
+ if not panel or not MRTE_IsNextPullDetached() then
+  return false
+ end
+
+ panel:Show()
+ if panel.Raise then
+  panel:Raise()
+ end
+ return true
 end
 
 function MRTE_ResetNextPullManualState(verbose)
@@ -611,6 +757,20 @@ function MRTE_HandleNextPullCardClick(frame, button)
  return true
 end
 
+function MRTE_UpdateNextPullPopoutLayout()
+ local panel = MRTE_NextPullPanel
+ local routeInfo = MRTE_NextPullPanelRouteInfoText
+ if not panel or not routeInfo then
+  return
+ end
+
+ if MRTE_IsNextPullDetached() then
+  panel:SetHeight(panel:GetHeight() + 62)
+ else
+  routeInfo:Hide()
+ end
+end
+
 function MRTE_ApplyNextPullPanelMode(keepCurrentPosition)
  local panel = MRTE_NextPullPanel
  if not panel then
@@ -636,6 +796,7 @@ function MRTE_ApplyNextPullPanelMode(keepCurrentPosition)
  if detached then
   panel:SetParent(UIParent)
   panel:SetFrameStrata("DIALOG")
+  panel:SetToplevel(true)
   panel:SetMovable(true)
   panel:SetClampedToScreen(true)
 
@@ -644,7 +805,16 @@ function MRTE_ApplyNextPullPanelMode(keepCurrentPosition)
   end
 
   ApplyDetachedPoint(panel, keepCurrentPosition)
-  panel:Show()
+
+  if MRTE_ApplyPanelLayout and panel.mrtePanelId then
+   MRTE_ApplyPanelLayout(panel.mrtePanelId)
+  else
+   panel:Show()
+  end
+
+  if panel.Raise then
+   panel:Raise()
+  end
  else
   panel:SetParent(MRTE_MainFrame or UIParent)
   panel:SetFrameStrata((MRTE_MainFrame and MRTE_MainFrame:GetFrameStrata()) or "DIALOG")
@@ -654,12 +824,19 @@ function MRTE_ApplyNextPullPanelMode(keepCurrentPosition)
    panel.dragHandle:EnableMouse(false)
   end
 
- panel:ClearAllPoints()
- panel:SetPoint(DOCKED_POINT.point, panel:GetParent(), DOCKED_POINT.relativePoint, DOCKED_POINT.x, DOCKED_POINT.y)
-  panel:Show()
+  if MRTE_ApplyPanelLayout and panel.mrtePanelId then
+   MRTE_ApplyPanelLayout(panel.mrtePanelId)
+  else
+   panel:ClearAllPoints()
+   panel:SetPoint(DOCKED_POINT.point, panel:GetParent(), DOCKED_POINT.relativePoint, DOCKED_POINT.x, DOCKED_POINT.y)
+   panel:Show()
+  end
  end
 
  panel.mrteDetached = detached
+ if MRTE_ApplyPanelPlaceholder then
+  MRTE_ApplyPanelPlaceholder("next_pull")
+ end
  MRTE_UpdateNextPullToggleButton()
 end
 
@@ -699,6 +876,7 @@ function MRTE_RefreshNextPullPanel(force, verbose)
   MRTE_NextPullPanelState = nil
   UpdateSummaryText(L.PANEL_MDT_OVERLAY)
   UpdateStatusText(reason)
+  UpdateRouteInfoText(nil)
   ClearCard(MRTE_NextPullCurrentCard, L.NEXT_PULL_CURRENT, reason)
   ClearCard(MRTE_NextPullNextCard, L.NEXT_PULL_NEXT, "")
 
@@ -723,6 +901,7 @@ function MRTE_RefreshNextPullPanel(force, verbose)
   MRTE_NextPullPanelState = nil
   UpdateSummaryText(context.dungeonName)
   UpdateStatusText(L.OVERLAY_NO_ROUTE_FOUND)
+  UpdateRouteInfoText(nil)
   ClearCard(MRTE_NextPullCurrentCard, L.NEXT_PULL_CURRENT, L.OVERLAY_NO_ROUTE_FOUND)
   ClearCard(MRTE_NextPullNextCard, L.NEXT_PULL_NEXT, "")
 
@@ -739,7 +918,7 @@ function MRTE_RefreshNextPullPanel(force, verbose)
  local maxIndex = entryCount + 1
  local storedManualIndex = GetNextPullManualIndex(contextKey)
 
- if storedManualIndex and progressCount and storedManualIndex < autoIndex then
+ if storedManualIndex and progressCount ~= nil and storedManualIndex <= autoIndex then
   SetNextPullManualIndex(contextKey, nil)
   storedManualIndex = nil
  end
@@ -786,6 +965,7 @@ function MRTE_RefreshNextPullPanel(force, verbose)
 
  ApplyCard(MRTE_NextPullCurrentCard, L.NEXT_PULL_CURRENT, primaryPull, context)
  ApplyCard(MRTE_NextPullNextCard, L.NEXT_PULL_NEXT, nextPull, context)
+ UpdateRouteInfoText(BuildRouteAssistText(primaryPull, nextPull, context))
  if MRTE_NextPullCurrentCard then
   MRTE_NextPullCurrentCard.role = "current"
  end
@@ -824,7 +1004,12 @@ nextPullDriver:RegisterEvent("CHALLENGE_MODE_RESET")
 nextPullDriver:RegisterEvent("SCENARIO_UPDATE")
 nextPullDriver:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
 
-nextPullDriver:SetScript("OnEvent", function()
+nextPullDriver:SetScript("OnEvent", function(_, event)
+ if event == "CHALLENGE_MODE_START" or event == "CHALLENGE_MODE_RESET" or event == "CHALLENGE_MODE_COMPLETED" then
+  ClearNextPullManualForCurrentContext()
+  lastSignature = nil
+ end
+
  nextPullElapsed = UPDATE_INTERVAL
  MRTE_RefreshNextPullPanel(true, false)
 end)
@@ -842,4 +1027,14 @@ nextPullDriver:SetScript("OnUpdate", function(_, elapsed)
  nextPullElapsed = 0
  MRTE_RefreshNextPullPanel(false, false)
 end)
+
+
+
+
+
+
+
+
+
+
 

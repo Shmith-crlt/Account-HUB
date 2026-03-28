@@ -1,4 +1,4 @@
-local addonName = ...
+﻿local addonName = ...
 local L = MRTE_L
 
 local function RegisterForEscape(frame)
@@ -17,10 +17,59 @@ local function RegisterForEscape(frame)
  table.insert(UISpecialFrames, frameName)
 end
 
+local function GetThemeColorSet()
+ return MRTE_GetThemeColors and MRTE_GetThemeColors() or {
+  accent = { 1.00, 0.86, 0.10 },
+  panelBackground = { 0.04, 0.04, 0.05 },
+  panelBorder = { 0.25, 0.20, 0.10 },
+ }
+end
+
+function MRTE_ApplyMainFrameTheme()
+ local frame = MRTE_MainFrame
+ if not frame then
+  return
+ end
+
+ local theme = GetThemeColorSet()
+ local accent = theme.accent or { 1.00, 0.86, 0.10 }
+ local panelBackground = theme.panelBackground or { 0.04, 0.04, 0.05 }
+
+ if frame.headerShade then
+  frame.headerShade:SetColorTexture(panelBackground[1] * 0.65, panelBackground[2] * 0.65, math.max(0.03, panelBackground[3] * 0.80), 0.34)
+ end
+
+ if frame.logoGlow then
+  frame.logoGlow:SetVertexColor(accent[1], accent[2], accent[3], 0.18)
+ end
+
+ if frame.headerLineLeft then
+  frame.headerLineLeft:SetColorTexture(accent[1], accent[2], accent[3], 0.58)
+ end
+
+ if frame.headerLineRight then
+  frame.headerLineRight:SetColorTexture(accent[1], accent[2], accent[3], 0.58)
+ end
+
+ if frame.headerLineLeftSoft then
+  frame.headerLineLeftSoft:SetColorTexture(accent[1] * 0.40, accent[2] * 0.34, accent[3] * 0.25, 0.20)
+ end
+
+ if frame.headerLineRightSoft then
+  frame.headerLineRightSoft:SetColorTexture(accent[1] * 0.40, accent[2] * 0.34, accent[3] * 0.25, 0.20)
+ end
+
+ if frame.status then
+  MRTE_StyleStatus(frame.status)
+ end
+end
+
 function MRTE_CreateMainUI()
  local frame = CreateFrame("Frame", "MRTE_MainFrame", UIParent, "BackdropTemplate")
  local logoIconPath = string.format("Interface\\AddOns\\%s\\Assets\\Branding\\account-hub-icon", addonName or "Account-HUB")
  frame:SetSize(1020, 780)
+ frame.mrteBaseWidth = 1020
+ frame.mrteBaseHeight = 780
  frame:SetPoint("CENTER")
  frame:SetFrameStrata("DIALOG")
  frame:SetClampedToScreen(true)
@@ -39,7 +88,6 @@ function MRTE_CreateMainUI()
   frame.mrteTopShade:SetPoint("TOPLEFT", 2, -2)
   frame.mrteTopShade:SetPoint("TOPRIGHT", -2, -2)
   frame.mrteTopShade:SetHeight(78)
-  frame.mrteTopShade:SetColorTexture(0.15, 0.10, 0.03, 0.30)
  end
 
  frame.headerShade = frame:CreateTexture(nil, "ARTWORK", nil, -1)
@@ -47,7 +95,6 @@ function MRTE_CreateMainUI()
  frame.headerShade:SetPoint("TOPLEFT", 2, -2)
  frame.headerShade:SetPoint("TOPRIGHT", -2, -2)
  frame.headerShade:SetHeight(82)
- frame.headerShade:SetColorTexture(0.05, 0.04, 0.02, 0.28)
 
  if frame.mrteTitleLine then
   frame.mrteTitleLine:ClearAllPoints()
@@ -58,39 +105,54 @@ function MRTE_CreateMainUI()
  frame.closeButton:SetPoint("TOPRIGHT", -6, -6)
  frame.closeButton:SetSize(28, 28)
 
+ frame.optionsButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+ frame.optionsButton:SetSize(90, 22)
+ frame.optionsButton:SetPoint("TOPLEFT", 18, -10)
+ frame.optionsButton:SetText(L.OPTIONS_BUTTON)
+ frame.optionsButton:SetScript("OnClick", function()
+  if MRTE_OpenOptionsWindow then
+   MRTE_OpenOptionsWindow()
+  end
+ end)
+
+ frame.advisorButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+ frame.advisorButton:SetSize(90, 22)
+ frame.advisorButton:SetPoint("LEFT", frame.optionsButton, "RIGHT", 8, 0)
+ frame.advisorButton:SetText(L.ADVISOR_BUTTON)
+ frame.advisorButton:SetScript("OnClick", function()
+  if MRTE_OpenAdvisorWindow then
+   MRTE_OpenAdvisorWindow()
+  end
+ end)
+
  frame.logoGlow = frame:CreateTexture(nil, "ARTWORK", nil, -1)
  frame.logoGlow:SetSize(74, 74)
  frame.logoGlow:SetPoint("TOP", 0, -5)
  frame.logoGlow:SetTexture(logoIconPath)
- frame.logoGlow:SetVertexColor(1, 0.84, 0.28, 0.16)
 
  frame.headerLineLeft = frame:CreateTexture(nil, "BORDER")
  frame.headerLineLeft:SetTexture("Interface/Buttons/WHITE8X8")
  frame.headerLineLeft:SetHeight(1)
  frame.headerLineLeft:SetPoint("LEFT", frame, "TOPLEFT", 20, -44)
  frame.headerLineLeft:SetPoint("RIGHT", frame, "TOP", -52, -44)
- frame.headerLineLeft:SetColorTexture(0.78, 0.64, 0.19, 0.52)
 
  frame.headerLineRight = frame:CreateTexture(nil, "BORDER")
  frame.headerLineRight:SetTexture("Interface/Buttons/WHITE8X8")
  frame.headerLineRight:SetHeight(1)
  frame.headerLineRight:SetPoint("LEFT", frame, "TOP", 52, -44)
  frame.headerLineRight:SetPoint("RIGHT", frame, "TOPRIGHT", -20, -44)
- frame.headerLineRight:SetColorTexture(0.78, 0.64, 0.19, 0.52)
 
  frame.headerLineLeftSoft = frame:CreateTexture(nil, "BACKGROUND")
  frame.headerLineLeftSoft:SetTexture("Interface/Buttons/WHITE8X8")
  frame.headerLineLeftSoft:SetHeight(3)
  frame.headerLineLeftSoft:SetPoint("LEFT", frame, "TOPLEFT", 20, -44)
  frame.headerLineLeftSoft:SetPoint("RIGHT", frame, "TOP", -70, -44)
- frame.headerLineLeftSoft:SetColorTexture(0.32, 0.24, 0.08, 0.18)
 
  frame.headerLineRightSoft = frame:CreateTexture(nil, "BACKGROUND")
  frame.headerLineRightSoft:SetTexture("Interface/Buttons/WHITE8X8")
  frame.headerLineRightSoft:SetHeight(3)
  frame.headerLineRightSoft:SetPoint("LEFT", frame, "TOP", 70, -44)
  frame.headerLineRightSoft:SetPoint("RIGHT", frame, "TOPRIGHT", -20, -44)
- frame.headerLineRightSoft:SetColorTexture(0.32, 0.24, 0.08, 0.18)
 
  frame.logoMark = frame:CreateTexture(nil, "ARTWORK")
  frame.logoMark:SetSize(56, 56)
@@ -116,8 +178,9 @@ function MRTE_CreateMainUI()
  frame.status:SetText("")
  MRTE_StyleStatus(frame.status)
 
- frame:Hide()
  MRTE_MainFrame = frame
+ MRTE_ApplyMainFrameTheme()
+ frame:Hide()
 end
 
 function MRTE_SetStatus(text)
@@ -311,6 +374,24 @@ SlashCmdList["ACCOUNTHUB"] = function(msg)
  local command, rest = msg:match("^(%S+)%s*(.*)$")
  command = command and strlower(command) or ""
 
+ if command == "options" or command == "config" or command == "settings" then
+  if MRTE_OpenOptionsWindow then
+   MRTE_OpenOptionsWindow()
+   return
+  end
+ end
+
+ if command == "advisor" or command == "plan" or command == "guide" then
+  if MRTE_MainFrame and not MRTE_MainFrame:IsShown() then
+   MRTE_MainFrame:Show()
+  end
+
+  if MRTE_OpenAdvisorWindow then
+   MRTE_OpenAdvisorWindow()
+   return
+  end
+ end
+
  if command == "pull" or command == "nextpull" or command == "overlay" then
   HandleOverlaySlashCommand(rest)
   return
@@ -326,4 +407,7 @@ SlashCmdList["ACCOUNTHUB"] = function(msg)
  print(L.SLASH_HELP)
  MRTE_SetStatus(L.UNKNOWN_COMMAND)
 end
+
+
+
 

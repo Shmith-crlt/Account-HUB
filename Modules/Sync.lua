@@ -1,4 +1,4 @@
-local lastSentKeyLevel = nil
+﻿local lastSentKeyLevel = nil
 local lastSentKeyMapID = nil
 local lastSentRating = nil
 
@@ -70,6 +70,9 @@ local function UpsertGroupKeystone(sender, keyLevel, keyMapID, playerRating)
  if MRTE_UpdateMythicPanel then
   MRTE_UpdateMythicPanel()
  end
+ if MRTE_UpdateAdvisorPanel then
+  MRTE_UpdateAdvisorPanel()
+ end
 end
 
 local function UpsertGuildKeystone(sender, keyLevel, keyMapID, playerRating)
@@ -134,6 +137,9 @@ local function PruneGroupKeystones()
 
  if changed and MRTE_UpdateMythicPanel then
   MRTE_UpdateMythicPanel()
+ end
+ if changed and MRTE_UpdateAdvisorPanel then
+  MRTE_UpdateAdvisorPanel()
  end
 end
 
@@ -266,3 +272,5 @@ syncFrame:SetScript("OnEvent", function(_, event, prefix, message, channel, send
 
  BroadcastOwnKeystone(false)
 end)
+
+

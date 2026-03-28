@@ -20,7 +20,7 @@ local function CreateVaultCell(parent, width, height)
 
  cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
  cell.text:SetPoint("CENTER", 0, 1)
- cell.text:SetFont(STANDARD_TEXT_FONT, 14, "OUTLINE")
+ MRTE_SetFont(cell.text, 14, "OUTLINE")
  cell.text:SetTextColor(0.62, 0.58, 0.50)
 
  cell:SetScript("OnEnter", function(self)
@@ -219,20 +219,20 @@ local function CreateNextPullCard(parent, width, height)
  card.title:SetPoint("TOPLEFT", 8, -6)
  card.title:SetJustifyH("LEFT")
  card.title:SetText(L.PANEL_MDT_OVERLAY)
- card.title:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+ MRTE_SetFont(card.title, 12, "OUTLINE")
 
  card.number = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
  card.number:SetPoint("TOPRIGHT", -8, -6)
  card.number:SetJustifyH("RIGHT")
  card.number:SetText("")
- card.number:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
+ MRTE_SetFont(card.number, 11, "OUTLINE")
 
  card.detail = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
  card.detail:SetPoint("TOPLEFT", card.title, "BOTTOMLEFT", 0, -6)
  card.detail:SetPoint("RIGHT", -8, 0)
  card.detail:SetJustifyH("LEFT")
  card.detail:SetText(L.OVERLAY_WAITING)
- card.detail:SetFont(STANDARD_TEXT_FONT, 10, "OUTLINE")
+ MRTE_SetFont(card.detail, 10, "OUTLINE")
 
  card.enemies = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
  card.enemies:SetPoint("TOPLEFT", card.detail, "BOTTOMLEFT", 0, -4)
@@ -240,7 +240,7 @@ local function CreateNextPullCard(parent, width, height)
  card.enemies:SetJustifyH("LEFT")
  card.enemies:SetJustifyV("TOP")
  card.enemies:SetText("")
- card.enemies:SetFont(STANDARD_TEXT_FONT, 10, "OUTLINE")
+ MRTE_SetFont(card.enemies, 10, "OUTLINE")
  card.enemies:SetTextColor(0.78, 0.78, 0.78)
 
  card:SetScript("OnEnter", function(self)
@@ -338,7 +338,7 @@ local function CreateDungeonInfoHeaderCell(parent, width, height, text)
 
  cell.text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
  cell.text:SetPoint("CENTER", 0, 0)
- cell.text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+ MRTE_SetFont(cell.text, 12, "OUTLINE")
  cell.text:SetTextColor(1, 1, 1)
  cell.text:SetText(text or "")
 
@@ -373,7 +373,7 @@ local function CreateDungeonInfoRow(parent, width, height, columnWidths)
 
   local text = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   text:SetPoint("CENTER", 0, 0)
-  text:SetFont(STANDARD_TEXT_FONT, 12, "OUTLINE")
+  MRTE_SetFont(text, 12, "OUTLINE")
   text:SetTextColor(1, 1, 1)
 
   row.cells[index] = cell
@@ -417,10 +417,35 @@ local function CreateDungeonInfoRewardBand(parent, width, height)
 
  band.text = band:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
  band.text:SetPoint("CENTER", 0, 0)
- band.text:SetFont(STANDARD_TEXT_FONT, 14, "OUTLINE")
+ MRTE_SetFont(band.text, 14, "OUTLINE")
  band.text:SetTextColor(0.62, 0.58, 0.50)
 
  return band
+end
+
+local function CreateAdvisorSummaryPanel(parent, titleText)
+ local panel = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+ panel:SetSize(300, 172)
+ panel:EnableMouse(true)
+ MRTE_Style(panel)
+
+ panel.title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+ panel.title:SetPoint("TOPLEFT", 14, -10)
+ panel.title:SetPoint("TOPRIGHT", -14, -10)
+ panel.title:SetJustifyH("LEFT")
+ panel.title:SetText(titleText or "")
+ MRTE_StyleTitle(panel.title, 15)
+
+ panel.body = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+ panel.body:SetPoint("TOPLEFT", panel.title, "BOTTOMLEFT", 0, -10)
+ panel.body:SetPoint("BOTTOMRIGHT", -14, 12)
+ panel.body:SetJustifyH("LEFT")
+ panel.body:SetJustifyV("TOP")
+ panel.body:SetSpacing(4)
+ panel.body:SetText("")
+ MRTE_StyleStatus(panel.body)
+
+ return panel
 end
 
 function MRTE_CreatePanels()
@@ -439,7 +464,7 @@ function MRTE_CreatePanels()
 
  mythic.totalScore = mythic:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
  mythic.totalScore:SetPoint("TOPLEFT", 18, -38)
- mythic.totalScore:SetFont(STANDARD_TEXT_FONT, 28, "OUTLINE")
+ MRTE_SetFont(mythic.totalScore, 28, "OUTLINE")
  mythic.totalScore:SetText("0")
 
  mythic.totalScoreLabel = mythic:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -743,6 +768,22 @@ function MRTE_CreatePanels()
 
  MRTE_GuildPanel = guild
 
+ local advisorToday = CreateAdvisorSummaryPanel(parent, L.PANEL_ADVISOR_TODAY)
+ advisorToday:SetPoint("TOPLEFT", 20, -66)
+ MRTE_AdvisorTodayPanel = advisorToday
+
+ local advisorGroup = CreateAdvisorSummaryPanel(parent, L.PANEL_ADVISOR_GROUP)
+ advisorGroup:SetPoint("TOP", 0, -66)
+ MRTE_AdvisorGroupPanel = advisorGroup
+
+ local advisorAlts = CreateAdvisorSummaryPanel(parent, L.PANEL_ADVISOR_ALTS)
+ advisorAlts:SetPoint("TOP", 0, -256)
+ MRTE_AdvisorAltsPanel = advisorAlts
+
+ local advisorVault = CreateAdvisorSummaryPanel(parent, L.PANEL_ADVISOR_VAULT)
+ advisorVault:SetPoint("TOPRIGHT", -20, -66)
+ MRTE_AdvisorVaultPanel = advisorVault
+
  local overlay = CreateFrame("Frame", nil, parent, "BackdropTemplate")
  overlay:SetSize(300, 244)
  overlay:SetPoint("BOTTOMRIGHT", -20, 64)
@@ -760,7 +801,7 @@ function MRTE_CreatePanels()
  overlay.info:SetJustifyH("CENTER")
  overlay.info:SetJustifyV("TOP")
  overlay.info:SetText(L.OVERLAY_WAITING)
- overlay.info:SetFont(STANDARD_TEXT_FONT, 11, "OUTLINE")
+ MRTE_SetFont(overlay.info, 11, "OUTLINE")
 
  overlay.status = overlay:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
  overlay.status:SetPoint("TOP", overlay.info, "BOTTOM", 0, -4)
@@ -768,7 +809,18 @@ function MRTE_CreatePanels()
  overlay.status:SetJustifyH("CENTER")
  overlay.status:SetJustifyV("TOP")
  overlay.status:SetText(L.OVERLAY_INFO)
- overlay.status:SetFont(STANDARD_TEXT_FONT, 10, "OUTLINE")
+ MRTE_SetFont(overlay.status, 10, "OUTLINE")
+
+ overlay.routeInfo = overlay:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+ overlay.routeInfo:SetPoint("TOPLEFT", 20, -212)
+ overlay.routeInfo:SetPoint("RIGHT", -20, 0)
+ overlay.routeInfo:SetJustifyH("LEFT")
+ overlay.routeInfo:SetJustifyV("TOP")
+ overlay.routeInfo:SetSpacing(3)
+ overlay.routeInfo:SetText("")
+ MRTE_SetFont(overlay.routeInfo, 10, "OUTLINE")
+ MRTE_StyleStatus(overlay.routeInfo)
+ overlay.routeInfo:Hide()
 
  overlay.dragHandle = CreateFrame("Frame", nil, overlay)
  overlay.dragHandle:SetPoint("TOPLEFT", 12, -6)
@@ -817,17 +869,73 @@ function MRTE_CreatePanels()
  end)
  overlay.toggleButton = toggleBtn
 
+ local overlayPlaceholder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+ overlayPlaceholder:SetSize(300, 244)
+ overlayPlaceholder:SetPoint("BOTTOMRIGHT", -20, 64)
+ overlayPlaceholder:EnableMouse(true)
+ MRTE_Style(overlayPlaceholder)
+
+ overlayPlaceholder.title = overlayPlaceholder:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+ overlayPlaceholder.title:SetPoint("TOP", 0, -10)
+ overlayPlaceholder.title:SetText(L.PANEL_MDT_OVERLAY)
+ MRTE_StyleTitle(overlayPlaceholder.title)
+
+ overlayPlaceholder.info = overlayPlaceholder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+ overlayPlaceholder.info:SetPoint("TOP", overlayPlaceholder.title, "BOTTOM", 0, -54)
+ overlayPlaceholder.info:SetWidth(240)
+ overlayPlaceholder.info:SetJustifyH("CENTER")
+ overlayPlaceholder.info:SetJustifyV("MIDDLE")
+ overlayPlaceholder.info:SetText(L.NEXT_PULL_POPOUT_ACTIVE)
+ MRTE_SetFont(overlayPlaceholder.info, 12, "OUTLINE")
+
+ overlayPlaceholder.status = overlayPlaceholder:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+ overlayPlaceholder.status:SetPoint("TOP", overlayPlaceholder.info, "BOTTOM", 0, -18)
+ overlayPlaceholder.status:SetWidth(240)
+ overlayPlaceholder.status:SetJustifyH("CENTER")
+ overlayPlaceholder.status:SetJustifyV("TOP")
+ overlayPlaceholder.status:SetText(L.NEXT_PULL_POPOUT_HINT)
+ MRTE_SetFont(overlayPlaceholder.status, 10, "OUTLINE")
+
+ overlayPlaceholder:SetScript("OnMouseUp", function(_, button)
+  if button == "LeftButton" and MRTE_BringNextPullPopoutToFront then
+   MRTE_BringNextPullPopoutToFront()
+  end
+ end)
+ overlayPlaceholder:Hide()
+
  MRTE_NextPullPanel = overlay
  MRTE_NextPullPanelSummaryText = overlay.info
  MRTE_NextPullPanelStatusText = overlay.status
+ MRTE_NextPullPanelRouteInfoText = overlay.routeInfo
  MRTE_NextPullCurrentCard = overlay.currentCard
  MRTE_NextPullNextCard = overlay.nextCard
  MRTE_OverlayPanel = overlay
  MRTE_OverlayPanelText = overlay.status
+ MRTE_NextPullPlaceholderPanel = overlayPlaceholder
 
  overlay:SetScript("OnMouseUp", function(_, button)
   if button == "LeftButton" and MRTE_OpenMDTUI then
    MRTE_OpenMDTUI()
   end
  end)
+
+ if MRTE_RegisterPanel then
+  MRTE_RegisterPanel("mythic", mythic)
+  MRTE_RegisterPanel("party_keys", currentKeys)
+  MRTE_RegisterPanel("portals", portals)
+  MRTE_RegisterPanel("dungeon_info", dungeonInfo)
+  MRTE_RegisterPanel("vault", vault)
+  MRTE_RegisterPanel("currencies", currencies)
+  MRTE_RegisterPanel("guild", guild)
+  MRTE_RegisterPanel("next_pull", overlay)
+  MRTE_RegisterPanel("advisor_today", advisorToday)
+  MRTE_RegisterPanel("advisor_group", advisorGroup)
+  MRTE_RegisterPanel("advisor_alts", advisorAlts)
+  MRTE_RegisterPanel("advisor_vault", advisorVault)
+  MRTE_RegisterPanelPlaceholder("next_pull", overlayPlaceholder)
+ end
 end
+
+
+
+

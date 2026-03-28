@@ -1,4 +1,4 @@
-local L = MRTE_L
+﻿local L = MRTE_L
 
 local TAB_WIDTH = 132
 local TAB_HEIGHT = 22
@@ -218,6 +218,10 @@ function MRTE_UpdateAllCharacterViews()
 
  if MRTE_UpdateBiSTargetsPanel then
   MRTE_UpdateBiSTargetsPanel()
+ end
+
+ if MRTE_UpdateAdvisorPanel then
+  MRTE_UpdateAdvisorPanel()
  end
 end
 
@@ -484,3 +488,4 @@ function MRTE_CreateCharacterTabs()
 
  MRTE_UpdateCharacterTabs()
 end
+
